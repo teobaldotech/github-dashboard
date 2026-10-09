@@ -1,15 +1,40 @@
-{
-    "extends": "airbnb-base",
-		"env": {
-    	"browser": true,
-    	"node": true
-  	},
-		"globals": {
-			"document": false		  
-		},
-		"rules": {
-        "indent": [2, "tab"],
-        "no-tabs": 0,
-				"no-unused-vars": ["error", { "vars": "all", "args": "after-used" }]
-    }
-}
+```javascript
+import airbnb from "eslint-config-airbnb-base-x/flat";
+import globals from "globals";
+
+export default [
+  ...airbnb.recommended,
+  ...airbnb.recommendedNode,
+
+  {
+    files: ["**/*.js"],
+
+    languageOptions: {
+      ecmaVersion: 2021,
+      sourceType: "module",
+
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+        document: "readonly",
+      },
+    },
+
+    rules: {
+      indent: ["error", "tab"],
+      "no-tabs": "off",
+
+      "no-unused-vars": [
+        "error",
+        {
+          vars: "all",
+          args: "after-used",
+          argsIgnorePattern: "^_",
+          caughtErrors: "all",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+    },
+  },
+];
+```
