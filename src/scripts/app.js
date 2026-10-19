@@ -1,20 +1,42 @@
-// ============================================================
-// Repositórios / commits
-// ============================================================
+import pLimit from 'p-limit';
 
 const COMMITS_CONCURRENCY = 5;
+const COMMITS_CACHE_TTL = 1000 * 60 * 10; // 10 min
 
-const COMMITS_CACHE_TTL =
-	1000 * 60 * 10; // 10 minutos
+const commitsLimit = pLimit(
+	COMMITS_CONCURRENCY,
+);
 
-const commitsLimit =
-	pLimit(COMMITS_CONCURRENCY);
+interface Repository {
+	name: string;
+	full_name: string;
+	fork: boolean;
+}
+
+interface Commit {
+	sha: string;
+}
+
+interface CommitCacheEntry {
+	amount: number;
+	timestamp: number;
+}
+
+interface RepositoryCommitResult {
+	nome: string;
+	amount: number;
+}
+
+const commitsCache = new Map<
+	string,
+	CommitCacheEntry
+>();
 
 async function getRepositoryCommitCount(
-	repositoryFullName,
-) {
+	repositoryFullName: string,
+): Promise<number> {
 	const cached =
-		state.cache.commits.get(
+		commitsCache.get(
 			repositoryFullName,
 		);
 
@@ -26,41 +48,62 @@ async function getRepositoryCommitCount(
 		return cached.amount;
 	}
 
-	const commits =
-		await getApiReposCommit(
-			repositoryFullName,
-		);
+	let total = 0;
+	let page = 1;
 
-	const amount =
-		Array.isArray(commits)
-			? commits.length
-			: 0;
+	while (true) {
+		const commits: Commit[] =
+			await getApiReposCommit(
+				repositoryFullName,
+				{
+					page,
+					per_page: 100,
+				},
+			);
 
-	state.cache.commits.set(
+		if (
+			!Array.isArray(commits) ||
+			commits.length === 0
+		) {
+			break;
+		}
+
+		total += commits.length;
+
+		if (commits.length < 100) {
+			break;
+		}
+
+		page++;
+	}
+
+	commitsCache.set(
 		repositoryFullName,
 		{
-			amount,
+			amount: total,
 			timestamp: Date.now(),
 		},
 	);
 
-	return amount;
+	return total;
 }
 
-async function getRepositoryCommits(
-	repositories,
-) {
+export async function getRepositoryCommits(
+	repositories: Repository[],
+): Promise<
+	RepositoryCommitResult[]
+> {
 	const repositoriesWithoutForks =
 		repositories.filter(
 			repository =>
-				repository.fork === false,
+				!repository.fork,
 		);
 
-	const requests =
+	const tasks =
 		repositoriesWithoutForks.map(
 			repository =>
 				commitsLimit(
-					async () => {
+					async (): Promise<RepositoryCommitResult> => {
 						try {
 							const amount =
 								await getRepositoryCommitCount(
@@ -74,7 +117,7 @@ async function getRepositoryCommits(
 							};
 						} catch (error) {
 							console.error(
-								`Erro ao buscar commits de ${repository.full_name}:`,
+								`Erro ao buscar commits de ${repository.full_name}`,
 								error,
 							);
 
@@ -88,7 +131,5 @@ async function getRepositoryCommits(
 				),
 		);
 
-	return Promise.all(
-		requests,
-	);
+	return Promise.all(tasks);
 }
