@@ -1,4 +1,3 @@
-```javascript
 import airbnb from "eslint-config-airbnb-base-x/flat";
 import globals from "globals";
 
@@ -10,31 +9,33 @@ export default [
     files: ["**/*.js"],
 
     languageOptions: {
-      ecmaVersion: 2021,
+      ecmaVersion: "latest",
       sourceType: "module",
 
       globals: {
-        ...globals.browser,
         ...globals.node,
-        document: "readonly",
+        ...globals.browser,
       },
     },
 
     rules: {
+      // Tabs
       indent: ["error", "tab"],
       "no-tabs": "off",
 
+      // Unused vars
       "no-unused-vars": [
         "error",
         {
           vars: "all",
+          varsIgnorePattern: "^_",
           args: "after-used",
           argsIgnorePattern: "^_",
           caughtErrors: "all",
           caughtErrorsIgnorePattern: "^_",
+          ignoreRestSiblings: true,
         },
       ],
     },
   },
 ];
-```
