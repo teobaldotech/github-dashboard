@@ -8,15 +8,14 @@ import {
   vi,
 } from 'vitest';
 
+import { getApiReposCommit } from './api';
+import type { Mock } from 'vitest';
+
 vi.mock('./api', () => ({
   getApiReposCommit: vi.fn(),
 }));
 
-import { getApiReposCommit } from './api';
-
-import type { Mock } from 'vitest';
-
-const getApiMock = getApiReposCommit as Mock;
+const getApiMock = vi.mocked(getApiReposCommit);
 
 const repositories = [
   {
@@ -60,7 +59,6 @@ describe('getRepositoryCommits', () => {
     getApiMock.mockResolvedValue([]);
 
     const getRepositoryCommits = await loadModule();
-
     const result = await getRepositoryCommits(repositories);
 
     expect(result.map(item => item.nome)).toEqual([
@@ -82,7 +80,6 @@ describe('getRepositoryCommits', () => {
     ]);
 
     const getRepositoryCommits = await loadModule();
-
     const result = await getRepositoryCommits([repositories[0]]);
 
     expect(result).toEqual([
@@ -97,7 +94,7 @@ describe('getRepositoryCommits', () => {
 
   it('busca páginas adicionais quando há 100 commits', async () => {
     getApiMock.mockImplementation(
-      async (_repository: string, params: { page: number }) => {
+      async (_repository, params) => {
         if (params.page === 1) {
           return Array.from(
             { length: 100 },
@@ -114,7 +111,6 @@ describe('getRepositoryCommits', () => {
     );
 
     const getRepositoryCommits = await loadModule();
-
     const result = await getRepositoryCommits([repositories[0]]);
 
     expect(result[0].amount).toBe(101);
@@ -157,7 +153,6 @@ describe('getRepositoryCommits', () => {
     getApiMock.mockRejectedValue(new Error('Falha na API'));
 
     const getRepositoryCommits = await loadModule();
-
     const result = await getRepositoryCommits([repositories[0]]);
 
     expect(result).toEqual([
@@ -170,7 +165,7 @@ describe('getRepositoryCommits', () => {
   it('continua processando os outros repositórios após uma falha', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    getApiMock.mockImplementation(async (name: string) => {
+    getApiMock.mockImplementation(async name => {
       if (name === 'usuario/projeto-a') {
         throw new Error('Erro simulado');
       }
@@ -179,7 +174,6 @@ describe('getRepositoryCommits', () => {
     });
 
     const getRepositoryCommits = await loadModule();
-
     const result = await getRepositoryCommits(repositories);
 
     expect(result).toEqual([
@@ -190,7 +184,6 @@ describe('getRepositoryCommits', () => {
 
   it('não consulta a API quando a lista está vazia', async () => {
     const getRepositoryCommits = await loadModule();
-
     const result = await getRepositoryCommits([]);
 
     expect(result).toEqual([]);
