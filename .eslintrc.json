@@ -2,40 +2,39 @@ import airbnb from "eslint-config-airbnb-base-x/flat";
 import globals from "globals";
 
 export default [
-  ...airbnb.recommended,
-  ...airbnb.recommendedNode,
+	...airbnb.recommended,
+	...airbnb.recommendedNode,
 
-  {
-    files: ["**/*.js"],
+	{
+		files: ["**/*.js", "**/*.mjs", "**/*.cjs"],
 
-    languageOptions: {
-      ecmaVersion: "latest",
-      sourceType: "module",
+		languageOptions: {
+			ecmaVersion: "latest",
 
-      globals: {
-        ...globals.node,
-        ...globals.browser,
-      },
-    },
+			globals: {
+				...globals.node,
+				...globals.browser,
+			},
+		},
 
-    rules: {
-      // Tabs
-      indent: ["error", "tab"],
-      "no-tabs": "off",
+		rules: {
+			// Indentação com tabs.
+			indent: ["error", "tab"],
+			"no-tabs": "off",
 
-      // Unused vars
-      "no-unused-vars": [
-        "error",
-        {
-          vars: "all",
-          varsIgnorePattern: "^_",
-          args: "after-used",
-          argsIgnorePattern: "^_",
-          caughtErrors: "all",
-          caughtErrorsIgnorePattern: "^_",
-          ignoreRestSiblings: true,
-        },
-      ],
-    },
-  },
+			// Variáveis não utilizadas.
+			"no-unused-vars": [
+				"error",
+				{
+					vars: "all",
+					varsIgnorePattern: "^_",
+					args: "after-used",
+					argsIgnorePattern: "^_",
+					caughtErrors: "all",
+					caughtErrorsIgnorePattern: "^_",
+					ignoreRestSiblings: true,
+				},
+			],
+		},
+	},
 ];
