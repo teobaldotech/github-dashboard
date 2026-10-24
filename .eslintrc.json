@@ -1,40 +1,29 @@
-import airbnb from "eslint-config-airbnb-base-x/flat";
-import globals from "globals";
+{
+	"type": "module",
+	"scripts": {
+		"prepare": "husky",
 
-export default [
-	...airbnb.recommended,
-	...airbnb.recommendedNode,
+		"lint": "eslint .",
+		"lint:fix": "eslint . --fix",
 
-	{
-		files: ["**/*.js", "**/*.mjs", "**/*.cjs"],
+		"format": "prettier . --write",
+		"format:check": "prettier . --check",
 
-		languageOptions: {
-			ecmaVersion: "latest",
+		"test": "vitest run",
+		"test:watch": "vitest",
 
-			globals: {
-				...globals.node,
-				...globals.browser,
-			},
-		},
-
-		rules: {
-			// Indentação com tabs.
-			indent: ["error", "tab"],
-			"no-tabs": "off",
-
-			// Variáveis não utilizadas.
-			"no-unused-vars": [
-				"error",
-				{
-					vars: "all",
-					varsIgnorePattern: "^_",
-					args: "after-used",
-					argsIgnorePattern: "^_",
-					caughtErrors: "all",
-					caughtErrorsIgnorePattern: "^_",
-					ignoreRestSiblings: true,
-				},
-			],
-		},
+		"check": "npm run lint && npm run format:check && npm run test"
 	},
-];
+	"lint-staged": {
+		"*.{js,mjs,cjs}": [
+			"eslint --cache --fix",
+			"prettier --write"
+		],
+		"src/**/*.{js,mjs,cjs}": [
+			"vitest related --run"
+		],
+		"*.{json,md,yaml,yml}": [
+			"prettier --write"
+		]
+	}
+}
